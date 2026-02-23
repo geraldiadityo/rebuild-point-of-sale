@@ -119,7 +119,7 @@ function NavLinkItem({
 
 // ─── Sidebar Component ────────────────────────────────────────────────────────
 
-export function Sidebar({ navigation, appName = "TailAdmin" }: SidebarProps) {
+export function Sidebar({ navigation, appName = "Point Of Sale" }: SidebarProps) {
     const pathname = usePathname();
 
     return (

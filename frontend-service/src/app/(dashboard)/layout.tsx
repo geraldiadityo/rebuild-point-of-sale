@@ -83,7 +83,7 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     return (
-        <DashboardWrapper navigation={navigation} appName="TailAdmin">
+        <DashboardWrapper navigation={navigation} appName="Point Of Sales">
             {children}
         </DashboardWrapper>
     );
