@@ -57,3 +57,7 @@ export interface ApiErrorResponse {
     message: string;
     errors?: Record<string, string[]>;
 }
+
+export interface ResponseDataCommon<T> {
+    data: T[];
+}

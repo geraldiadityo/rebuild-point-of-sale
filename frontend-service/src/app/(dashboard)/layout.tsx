@@ -62,8 +62,8 @@ const navigation: NavGroup[] = [
         title: "Settings",
         items: [
             {
-                label: "Settings",
-                href: "/settings",
+                label: "Management User",
+                href: "/user-management",
                 icon: Settings,
             },
             {
