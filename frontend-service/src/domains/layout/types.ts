@@ -36,8 +36,6 @@ export interface DashboardWrapperProps {
     children: React.ReactNode;
     /** Navigation groups for the sidebar */
     navigation: NavGroup[];
-    /** Current user information for the header */
-    user: UserInfo;
     /** Application name / logo text */
     appName?: string;
 }

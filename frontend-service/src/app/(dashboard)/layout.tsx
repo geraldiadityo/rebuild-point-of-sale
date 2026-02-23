@@ -1,7 +1,7 @@
 "use client";
 
 import { DashboardWrapper } from "@/domains/layout/components/DashboardWrapper";
-import type { NavGroup, UserInfo } from "@/domains/layout/types";
+import type { NavGroup } from "@/domains/layout/types";
 import {
     LayoutDashboard,
     Users,
@@ -75,12 +75,6 @@ const navigation: NavGroup[] = [
     },
 ];
 
-const user: UserInfo = {
-    name: "John Doe",
-    role: "Administrator",
-    email: "john@example.com",
-};
-
 // ─── Dashboard Layout ─────────────────────────────────────────────────────────
 
 export default function DashboardLayout({
@@ -89,7 +83,7 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     return (
-        <DashboardWrapper navigation={navigation} user={user} appName="TailAdmin">
+        <DashboardWrapper navigation={navigation} appName="TailAdmin">
             {children}
         </DashboardWrapper>
     );

@@ -1,36 +1,50 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { AxiosError } from "axios";
 import { Button } from "@/domains/shared/ui/button";
 import { Input } from "@/domains/shared/ui/input";
 import { Label } from "@/domains/shared/ui/label";
 import { Checkbox } from "@/domains/shared/ui/checkbox";
 import { PasswordInput } from "@/domains/shared/password-input/PasswordInput";
 import { showToast } from "@/core/toast/showToast";
+import { useLogin } from "@/domains/auth/hooks/useLogin";
+import type { ApiErrorResponse } from "@/core/api/types";
 
 export default function LoginPage() {
-    const [email, setEmail] = useState("");
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [remember, setRemember] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const login = useLogin({
+        onSuccess: (data) => {
+            showToast.success("Welcome back!", data.message);
+            router.push(callbackUrl);
+        },
+        onError: (error) => {
+            if (error instanceof AxiosError && error.response?.data) {
+                const apiError = error.response.data as ApiErrorResponse;
+                showToast.error(apiError.message || "Login failed.");
+            } else {
+                showToast.error("An unexpected error occurred.");
+            }
+        },
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!email || !password) {
+        if (!username || !password) {
             showToast.warning("Please fill in all fields.");
             return;
         }
 
-        setIsLoading(true);
-
-        // Simulate API call
-        await new Promise((r) => setTimeout(r, 1500));
-        setIsLoading(false);
-
-        // Demo: show success toast
-        showToast.success("Welcome back!", `Logged in as ${email}`);
+        login.mutate({ username, password });
     };
 
     return (
@@ -51,16 +65,16 @@ export default function LoginPage() {
             {/* Login Card */}
             <div className="rounded-xl border bg-card p-6 shadow-sm">
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Email */}
+                    {/* Username */}
                     <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="username">Username</Label>
                         <Input
-                            id="email"
-                            type="email"
-                            placeholder="name@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            autoComplete="email"
+                            id="username"
+                            type="text"
+                            placeholder="Enter your username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            autoComplete="username"
                             autoFocus
                         />
                     </div>
@@ -106,9 +120,9 @@ export default function LoginPage() {
                     <Button
                         type="submit"
                         className="w-full"
-                        disabled={isLoading}
+                        disabled={login.isPending}
                     >
-                        {isLoading ? "Signing in..." : "Sign in"}
+                        {login.isPending ? "Signing in..." : "Sign in"}
                     </Button>
                 </form>
             </div>

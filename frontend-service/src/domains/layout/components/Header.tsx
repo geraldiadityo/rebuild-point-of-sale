@@ -1,6 +1,7 @@
 "use client";
 
-import { Menu, Bell, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, Bell, Search, LogOut } from "lucide-react";
 import { Button } from "@/domains/shared/ui/button";
 import {
     Avatar,
@@ -17,12 +18,12 @@ import {
 } from "@/domains/shared/ui/dropdown-menu";
 import { Input } from "@/domains/shared/ui/input";
 import { ThemeToggle } from "@/core/theme/ThemeToggle";
-import type { UserInfo } from "../types";
+import { useAuth } from "@/domains/auth/hooks/useAuth";
+import { useLogout } from "@/domains/auth/hooks/useLogout";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface HeaderProps {
-    user: UserInfo;
     onMenuClick: () => void;
 }
 
@@ -39,7 +40,19 @@ function getInitials(name: string): string {
 
 // ─── Header Component ────────────────────────────────────────────────────────
 
-export function Header({ user, onMenuClick }: HeaderProps) {
+export function Header({ onMenuClick }: HeaderProps) {
+    const { user } = useAuth();
+    const logout = useLogout();
+
+    // Hydration guard: render user data only after client mount
+    const [hasMounted, setHasMounted] = useState(false);
+    useEffect(() => {
+        setHasMounted(true);
+    }, []);
+
+    const displayName = hasMounted && user ? user.nama : "";
+    const displayRole = hasMounted && user ? user.role.nama : "";
+
     return (
         <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-border bg-card/80 px-4 backdrop-blur-md sm:px-6">
             {/* Mobile Menu Toggle */}
@@ -99,26 +112,26 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                             className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-accent cursor-pointer"
                         >
                             <Avatar className="size-8">
-                                <AvatarImage src={user.avatar} alt={user.name} />
+                                <AvatarImage src={undefined} alt={displayName} />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
-                                    {getInitials(user.name)}
+                                    {displayName ? getInitials(displayName) : "??"}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="hidden text-left md:block">
                                 <p className="text-sm font-medium leading-none text-foreground">
-                                    {user.name}
+                                    {displayName || "Loading..."}
                                 </p>
-                                <p className="text-xs text-muted-foreground">{user.role}</p>
+                                <p className="text-xs text-muted-foreground">{displayRole}</p>
                             </div>
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuLabel>
                             <div className="flex flex-col">
-                                <span className="font-medium">{user.name}</span>
-                                {user.email && (
+                                <span className="font-medium">{displayName}</span>
+                                {hasMounted && user?.username && (
                                     <span className="text-xs font-normal text-muted-foreground">
-                                        {user.email}
+                                        {user.username}
                                     </span>
                                 )}
                             </div>
@@ -127,7 +140,10 @@ export function Header({ user, onMenuClick }: HeaderProps) {
                         <DropdownMenuItem>Profile</DropdownMenuItem>
                         <DropdownMenuItem>Settings</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive">Log out</DropdownMenuItem>
+                        <DropdownMenuItem variant="destructive" onClick={logout}>
+                            <LogOut className="mr-2 size-4" />
+                            Log out
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
