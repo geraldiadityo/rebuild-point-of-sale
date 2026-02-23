@@ -1,0 +1,320 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id       Int        @id @default(autoincrement())
+  nama     String     @unique @db.VarChar(100)
+  Pengguna Pengguna[]
+
+  @@map("role")
+}
+
+model Pengguna {
+  id            Int             @id @default(autoincrement())
+  username      String          @unique @db.VarChar(100)
+  nama          String          @db.VarChar(100)
+  roleId        Int
+  role          Role            @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  status        Boolean         @default(true)
+  password      String
+  created_at    DateTime        @default(now())
+  updated_at    DateTime        @updatedAt
+  deleted_at    DateTime?
+  Penjualan     Penjualan[]
+  Stok_opname   Stok_opname[]
+  Cash_mutation Cash_mutation[]
+
+  @@map("pengguna")
+}
+
+// item barang
+model Kategori {
+  id   Int    @id @default(autoincrement())
+  nama String @unique @db.VarChar(100)
+  Item Item[]
+
+  @@map("kategori_barang")
+}
+
+model Satuan {
+  id          Int           @id @default(autoincrement())
+  nama        String        @unique @db.VarChar(100)
+  Item_satuan Item_satuan[]
+
+  @@map("satuan_barang")
+}
+
+model Tipe {
+  id   Int    @id @default(autoincrement())
+  nama String @unique @db.VarChar(100)
+  Item Item[]
+
+  @@map("tipe_barang")
+}
+
+model Item {
+  id                 Int                  @id @default(autoincrement())
+  barcode            String               @unique @db.VarChar(50)
+  sku                String               @unique @db.VarChar(100)
+  nama_item          String               @unique @db.VarChar(200)
+  kategoriId         Int
+  kategori           Kategori             @relation(fields: [kategoriId], references: [id])
+  tipeId             Int
+  tipe               Tipe                 @relation(fields: [tipeId], references: [id])
+  deskripsi          String?              @db.Text
+  default_index      Int?
+  avg_cost           Int?                 @default(0)
+  Item_satuan        Item_satuan[]
+  Inventory          Inventory[]
+  Keranjang          Keranjang[]
+  Stok_opname_detail Stok_opname_detail[]
+
+  @@map("item_barang")
+}
+
+model Item_satuan {
+  id               Int                @id @default(autoincrement())
+  itemId           Int
+  item             Item               @relation(fields: [itemId], references: [id])
+  satuanId         Int
+  satuan           Satuan             @relation(fields: [satuanId], references: [id])
+  convert_item     Int
+  qty_price        Int
+  Pembelian_detail Pembelian_detail[]
+  Penjualan_detail Penjualan_detail[]
+  Keranjang        Keranjang[]
+
+  @@index([itemId])
+  @@index([satuanId])
+  @@map("item_satuan_barang")
+}
+
+// pembelian barang
+model Supplier {
+  id            Int         @id @default(autoincrement())
+  nama_supplier String      @unique @db.VarChar(200)
+  alamat        String      @db.Text
+  no_telp       String      @db.VarChar(20)
+  deskripsi     String?     @db.Text
+  Pembelian     Pembelian[]
+
+  @@map("supplier")
+}
+
+enum InvntoryTransactionType {
+  PEMBELIAN
+  PENJUALAN_MANUAL
+  PENYESUAIAN_STOK
+  RETUR
+}
+
+model Inventory {
+  id               Int                     @id @default(autoincrement())
+  itemId           Int
+  item             Item                    @relation(fields: [itemId], references: [id])
+  stok             Int
+  tanggal_terima   DateTime
+  expired_date     DateTime?
+  status           Boolean                 @default(true)
+  transaction_type InvntoryTransactionType @default(PEMBELIAN)
+  deleted_at       DateTime?
+
+  @@index([itemId])
+  @@index([tanggal_terima])
+  @@map("inventory_ledger")
+}
+
+// stok opname
+
+enum StokOpnameStatus {
+  BERJALAN
+  SELESAI
+  DIBATALKAN
+}
+
+model Stok_opname {
+  id                 Int                  @id @default(autoincrement())
+  tanggal_mulai      DateTime
+  tanggal_selesai    DateTime?
+  status             StokOpnameStatus     @default(BERJALAN)
+  catatan            String?
+  penggunaId         Int
+  pengguna           Pengguna             @relation(fields: [penggunaId], references: [id])
+  Stok_opname_detail Stok_opname_detail[]
+
+  @@map("stok_opname")
+}
+
+model Stok_opname_detail {
+  id           Int         @id @default(autoincrement())
+  opnameId     Int
+  opname       Stok_opname @relation(fields: [opnameId], references: [id])
+  itemId       Int
+  item         Item        @relation(fields: [itemId], references: [id])
+  stock_system Int
+  stock_real   Int?
+  selisih      Int?
+
+  @@map("stok_opname_detail")
+}
+
+// pembelian barang
+model Pembelian {
+  id                  Int                @id @default(autoincrement())
+  tanggal             DateTime
+  tanggal_terima      DateTime
+  tanggal_jatuh_tempo DateTime
+  no_faktur           String             @unique @db.VarChar(100)
+  supplierId          Int
+  supplier            Supplier           @relation(fields: [supplierId], references: [id])
+  total               Int
+  sisa_pembayaran     Int
+  status              Boolean            @default(false)
+  deleted_at          DateTime?
+  Pembelian_detail    Pembelian_detail[]
+
+  @@index([tanggal])
+  @@index([supplierId])
+  @@map("pembelian_barang")
+}
+
+model Pembelian_detail {
+  id           Int         @id @default(autoincrement())
+  pembelianId  Int
+  pembelian    Pembelian   @relation(fields: [pembelianId], references: [id])
+  itemSatuanId Int
+  item_satuan  Item_satuan @relation(fields: [itemSatuanId], references: [id])
+  qty          Int
+  harga_beli   Int
+  tanggal      DateTime
+
+  @@index([pembelianId])
+  @@index([itemSatuanId])
+  @@index([tanggal])
+  @@map("pembelian_detail_barang")
+}
+
+model Penjualan {
+  id               Int                @id @default(autoincrement())
+  tanggal          DateTime
+  invoice          String             @unique @db.VarChar(100)
+  total            Int
+  discount         Int?
+  grand_total      Int
+  tipe_pembayaran  String?
+  bayar            Int
+  kembalian        Int
+  penggunaId       Int
+  pengguna         Pengguna           @relation(fields: [penggunaId], references: [id])
+  delete_at        DateTime?
+  external_id      String?            @unique @db.Uuid
+  Penjualan_detail Penjualan_detail[]
+
+  @@index([tanggal])
+  @@index([penggunaId])
+  @@index([tanggal, delete_at])
+  @@map("penjualan_barang")
+}
+
+model Penjualan_detail {
+  id           Int         @id @default(autoincrement())
+  penjualanId  Int
+  penjualan    Penjualan   @relation(fields: [penjualanId], references: [id])
+  itemSatuanId Int
+  item_satuan  Item_satuan @relation(fields: [itemSatuanId], references: [id])
+  harga        Int
+  qty          Int
+  tanggal      DateTime
+
+  @@index([penjualanId])
+  @@index([itemSatuanId])
+  @@index([tanggal])
+  @@map("penjualan_detail_barang")
+}
+
+model Keranjang {
+  id           Int         @id @default(autoincrement())
+  no_keranjang String
+  itemId       Int
+  item         Item        @relation(fields: [itemId], references: [id])
+  itemSatuanId Int
+  item_satuan  Item_satuan @relation(fields: [itemSatuanId], references: [id])
+  harga        Int
+  qty          Int
+
+  @@map("keranjang")
+}
+
+// discount / promo
+model Discount_code {
+  id           Int      @id @default(autoincrement())
+  nama         String   @unique @db.VarChar(100)
+  price        Int
+  occurs_until DateTime
+  status       Boolean  @default(true)
+
+  @@map("discount_code")
+}
+
+model Cash {
+  id            Int             @id @default(autoincrement())
+  cash_name     String          @unique
+  values        Int
+  Cash_mutation Cash_mutation[]
+
+  @@map("cash")
+}
+
+model Cash_mutation {
+  id          Int       @id @default(autoincrement())
+  cashId      Int
+  cash        Cash      @relation(fields: [cashId], references: [id], onDelete: Cascade)
+  type        String
+  saldo_awal  Int?
+  value       Int
+  saldo_akhir Int?
+  keterangan  String
+  tanggal     DateTime  @default(now())
+  penggunaId  Int?
+  pengguna    Pengguna? @relation(fields: [penggunaId], references: [id], onDelete: Cascade)
+  shift       String?
+
+  @@index([tanggal])
+  @@index([cashId])
+  @@map("cash_mutation")
+}
+
+model Attribute {
+  key    String @id @unique
+  values String @db.Text
+
+  @@map("attribute_table")
+}
+
+enum TipePemberitahuan {
+  ITEM_EXPIRED
+  KUPON_EXPIRED
+}
+
+model Pemberitahuan {
+  id          Int               @id @default(autoincrement())
+  tipe        TipePemberitahuan
+  pesan       String            @db.Text
+  referensiId Int
+  created_at  DateTime          @default(now())
+
+  @@unique([tipe, referensiId])
+  @@map("pemberitahuan")
+}
