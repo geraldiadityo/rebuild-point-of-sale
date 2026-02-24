@@ -9,4 +9,4 @@ export const roleEditSchema = roleSchema.extend({
 })
 
 export type RoleFormValue = z.infer<typeof roleSchema>;
-export type RoleEditVavlue = z.infer<typeof roleEditSchema>;
+export type RoleEditValue = z.infer<typeof roleEditSchema>;

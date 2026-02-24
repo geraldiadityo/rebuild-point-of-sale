@@ -61,3 +61,8 @@ export interface ApiErrorResponse {
 export interface ResponseDataCommon<T> {
     data: T[];
 }
+
+export interface ResponseData<T> {
+    data: T,
+    message: "string"
+}

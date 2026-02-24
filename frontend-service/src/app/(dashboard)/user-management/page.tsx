@@ -1,5 +1,6 @@
 "use client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/domains/shared/ui/tabs";
+import { RolesTabContent } from "@/domains/user-management/role/components/RoleTabContent";
 import { UserCog, KeyRoundIcon } from "lucide-react";
 export default function UserManagementPage() {
     return (
@@ -23,11 +24,11 @@ export default function UserManagementPage() {
                 </TabsList>
 
                 <TabsContent value="users" className="mt-6">
-                    <h1>ini content users</h1>
+                    <h1>Ini content users</h1>
                 </TabsContent>
 
                 <TabsContent value="roles" className="mt-6">
-                    <h1>Ini content roles</h1>
+                    <RolesTabContent />
                 </TabsContent>
             </Tabs>
         </div>

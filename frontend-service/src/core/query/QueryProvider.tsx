@@ -5,8 +5,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState, type ReactNode } from "react";
 import { AxiosError } from "axios";
 
-function makeQueryClient() {
-  return new QueryClient({
+export const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
         // Caching strategy
@@ -35,7 +34,9 @@ function makeQueryClient() {
         }
       }
     }
-  });
+});
+function makeQueryClient() {
+  return queryClient;
 }
 
 let browserQueryClient: QueryClient | undefined = undefined;
