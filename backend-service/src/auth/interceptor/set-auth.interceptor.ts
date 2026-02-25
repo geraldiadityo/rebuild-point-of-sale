@@ -14,9 +14,19 @@ export class SetAuthInteceptor implements NestInterceptor {
                         httpOnly: true,
                         secure: false,
                         sameSite: 'lax',
-                        maxAge: 1000 * 60 * 60 * 24,
+                        maxAge: 15 * 60 * 1000,
                         path: '/'
                     });
+                }
+
+                if (data?.refreshToken){
+                    res.setCookie('refresh_token', data.refreshToken,{
+                        httpOnly: true,
+                        secure: false,
+                        sameSite: 'lax',
+                        maxAge: 1000 * 60 * 60 * 24,
+                        path: '/'
+                    })
                 }
 
                 if(data?.user){

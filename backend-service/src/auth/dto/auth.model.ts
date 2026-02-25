@@ -9,6 +9,7 @@ export class LoginRequestDTO {
 export class LoginResponse {
     data: PenggunaResponse;
     token: string;
+    refreshToken: string;
 }
 
 export class PayloadDecoded {

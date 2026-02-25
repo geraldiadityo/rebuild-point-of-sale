@@ -29,6 +29,7 @@ model Pengguna {
   role          Role            @relation(fields: [roleId], references: [id], onDelete: Cascade)
   status        Boolean         @default(true)
   password      String
+  refresh_token String?         @db.Text
   created_at    DateTime        @default(now())
   updated_at    DateTime        @updatedAt
   deleted_at    DateTime?

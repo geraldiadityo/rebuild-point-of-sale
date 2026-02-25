@@ -109,6 +109,36 @@ export class PenggunaService {
         }
     }
 
+    async updateRefreshToken(
+        id: number,
+        hash: string | null,
+        tx?: Prisma.TransactionClient
+    ): Promise<PenggunaResponse> {
+        this.logger.info(`starting update hash refresh token with pengguna id: ${id}`,{context: this.ctx});
+        try {
+            const updatePengguna = await this.prisma.$transaction(
+                async (tx) => {
+                    const currentData = await this.penggunaMustExists(id, tx);
+                    const dataSender = {
+                        refresh_token: hash
+                    }
+
+                    const newData = await this.repo.update(currentData.id, dataSender, tx);
+                    this.logger.info(`success updating refresh token hash with pengguna id ${newData.id}`, {context: this.ctx});
+                    return newData;
+                }
+            )
+            return this.toPenggunaResponse(updatePengguna);
+        } catch (err){
+            if (err instanceof HttpException){
+                throw err
+            }
+
+            this.logger.error(`Unexpected error: ${err}`,{context: this.ctx});
+            throw new InternalServerErrorException('Terjadi Kesalahan Di server')
+        }
+    }
+
     async resetPassword(
         id: number,
         data: ResetPasswordDTO

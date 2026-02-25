@@ -20,6 +20,8 @@ import { StokOpnameModule } from './stock_opname/stock-opname.module';
 import { AttributeModule } from './attribute/attribute.module';
 import { CashModule } from './cash/cash.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -56,6 +58,11 @@ import { DashboardModule } from './dashboard/dashboard.module';
     DashboardModule
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard
+    }
+  ],
 })
 export class AppModule {}

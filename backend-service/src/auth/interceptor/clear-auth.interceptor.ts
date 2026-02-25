@@ -58,6 +58,13 @@ export class ClearAuthCookieInterceptor implements NestInterceptor {
                         path: '/'
                     });
 
+                    res.clearCookie('refresh_token',{
+                        httpOnly: true,
+                        secure: false,
+                        sameSite:'lax',
+                        path: '/'
+                    })
+
                     res.clearCookie('user', {
                         httpOnly: false,
                         secure: false,

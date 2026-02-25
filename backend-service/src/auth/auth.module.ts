@@ -5,6 +5,7 @@ import { JwtService } from "@nestjs/jwt";
 import { AuthController } from "./auth.controller";
 import { ClearAuthCookieInterceptor } from "./interceptor/clear-auth.interceptor";
 import { JwtStrategy } from "./jwt.strategy";
+import { JwtAuthGuard } from "./jwt-auth.guard";
 
 @Module({
     imports: [
@@ -13,10 +14,15 @@ import { JwtStrategy } from "./jwt.strategy";
     providers: [
         AuthService,
         ClearAuthCookieInterceptor,
-        JwtStrategy
+        JwtStrategy,
+        JwtAuthGuard,
     ],
     controllers: [
         AuthController
+    ],
+    exports: [
+        AuthService,
+        JwtAuthGuard
     ]
 })
 export class AuthModule {}

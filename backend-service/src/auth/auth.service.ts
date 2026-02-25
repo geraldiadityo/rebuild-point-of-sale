@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { PenggunaResponse } from "src/master/pengguna/dto/pengguna.model";
@@ -9,15 +9,42 @@ import { LoginResponse, PayloadDecoded } from "./dto/auth.model";
 import { v4 as uuidv4 } from 'uuid';
 import { KEYV_INSTANCE } from "src/common/keyv.provider";
 import Keyv from "keyv";
+import { ConfigService } from "@nestjs/config";
 @Injectable()
 export class AuthService {
     private readonly ctx = 'AuthService';
     constructor(
         private penggunaService: PenggunaService,
         private jwtService: JwtService,
+        private configService: ConfigService,
         @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
         @Inject(KEYV_INSTANCE) private keyv: Keyv
     ) {}
+
+    async generateToken(user: PenggunaResponse): Promise<{
+        accessToken: string,
+        refreshToken: string
+    }> {
+        const payload = {
+            username: user.username,
+            sub: user.id,
+            role: user.role,
+            jti: uuidv4()
+        }
+
+        const [accessToken, refreshToken] = await Promise.all([
+            this.jwtService.signAsync(payload, {
+                secret: this.configService.get('JWT_SECRET_KEY'),
+                expiresIn: '15m'
+            }),
+            this.jwtService.signAsync(payload, {
+                secret: this.configService.get('JWT_REFRESH_SECRET_KEY'),
+                expiresIn: '7d'
+            })
+        ]);
+
+        return { accessToken, refreshToken }
+    }
 
     async validate(
         data: { username: string, password: string },
@@ -42,16 +69,47 @@ export class AuthService {
         user: PenggunaResponse
     ): Promise<LoginResponse>{
         this.logger.debug('starting sign user', { context: this.ctx });
-        const payload = {
-            username: user.username,
-            sub: user.id,
-            role: user.role,
-            jti: uuidv4()
-        }
+        const tokens = await this.generateToken(user);
+        const hashRt = await bcryptjs.hash(tokens.refreshToken, 10);
+        const newUser = await this.penggunaService.updateRefreshToken(user.id, hashRt);
 
         return {
-            data: user,
-            token: this.jwtService.sign(payload)
+            data: newUser,
+            token: tokens.accessToken,
+            refreshToken: tokens.refreshToken
+        }
+    }
+
+    async regenerateToken(incomingRefreshToken: string): Promise<LoginResponse> {
+        try {
+            const payload = this.jwtService.verify(incomingRefreshToken, {
+                secret: this.configService.get('JWT_REFRESH_SECRET_KEY')
+            });
+
+            const user = await this.penggunaService.getByUsername(payload.username);
+            if(!user || !user.refresh_token){
+                this.logger.warn(`user with username ${payload.username}, refresh Token is null`,{context: this.ctx});
+                throw new HttpException('Session was expired', HttpStatus.UNAUTHORIZED);
+            }
+
+            const isMatch = await bcryptjs.compare(incomingRefreshToken, user.refresh_token);
+            if(!isMatch){
+                this.logger.warn('Token is not match', HttpStatus.UNAUTHORIZED);
+            }
+
+            const userValidated = await this.penggunaService.penggunaMustExists(user.id);
+            const tokens = await this.generateToken(userValidated);
+
+            const newHash = await bcryptjs.hash(tokens.refreshToken, 10);
+            const newDataUser = await this.penggunaService.updateRefreshToken(userValidated.id, newHash);
+
+            return {
+                data: newDataUser,
+                token: tokens.accessToken,
+                refreshToken: tokens.refreshToken
+            }
+        } catch (err){
+            throw new UnauthorizedException('Session Expired')
         }
     }
 
@@ -62,6 +120,8 @@ export class AuthService {
                 this.logger.warn('Invalid token on logout attempt', { context: this.ctx });
                 return;
             }
+
+            await this.penggunaService.updateRefreshToken(decoded.sub, null);
 
             const { jti, exp } = decoded;
             // console.log(exp)

@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put } from "@nest
 import { AttributeService } from "./attribute.service";
 import { AttributeCreateDto, AttributeResponse } from "./attribute.model";
 import { ApiResponse } from "src/utils/web.model";
+import { Public } from "src/common/public.decorator";
 
 @Controller('/api/attribute')
 export class AttributeController {
@@ -35,6 +36,7 @@ export class AttributeController {
         }
     }
 
+    @Public()
     @Get()
     @HttpCode(200)
     async getAll(): Promise<ApiResponse<AttributeResponse[]>>{
@@ -46,6 +48,7 @@ export class AttributeController {
         }
     }
 
+    @Public()
     @Get('/:key')
     @HttpCode(200)
     async getKey(
