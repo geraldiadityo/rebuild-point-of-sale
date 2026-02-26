@@ -165,7 +165,7 @@ export class ItemSatuanRepository extends CacheRepository implements ISatuanItem
 
     async findMany(args: FindManyItemSatuanArgs): Promise<Item_satuan[]>{
         const cacheKey = this.getCacheKey(args);
-        const cachedData = await this.keyv.get<Item_satuan[]>(cacheKey);
+        const cachedData = await this.cache.get<Item_satuan[]>(cacheKey);
 
         if(cachedData){
             this.logger.debug(`fetching data from cached`,{context: this.ctx});
@@ -174,7 +174,7 @@ export class ItemSatuanRepository extends CacheRepository implements ISatuanItem
 
         this.logger.debug('fetching data from database', {context: this.ctx});
         const dbData = await this.prisma.item_satuan.findMany(args);
-        await this.keyv.set(cacheKey, dbData);
+        await this.cache.set(cacheKey, dbData);
 
         return dbData;
     }

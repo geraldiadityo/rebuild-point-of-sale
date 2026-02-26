@@ -86,7 +86,7 @@ export class SupplierRepository extends CacheRepository implements ISupplierRepo
 
     async findMany(args: FindManySupplierArgs): Promise<Supplier[]>{
         const cacheKey = this.getCacheKey(args);
-        const cachedData = await this.keyv.get<Supplier[]>(cacheKey);
+        const cachedData = await this.cache.get<Supplier[]>(cacheKey);
 
         if(cachedData){
             this.logger.debug('Fetching data from cache', {context: this.ctx});
@@ -96,7 +96,7 @@ export class SupplierRepository extends CacheRepository implements ISupplierRepo
         this.logger.debug('Fetching data from database', {context: this.ctx});
         const dbData = await this.prisma.supplier.findMany(args);
         
-        await this.keyv.set(cacheKey, dbData);
+        await this.cache.set(cacheKey, dbData);
         return dbData;
     }
 

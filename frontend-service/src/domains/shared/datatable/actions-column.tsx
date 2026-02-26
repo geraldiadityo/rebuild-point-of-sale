@@ -28,12 +28,12 @@ export function createActionsColumn<TData>(
         enableSorting: false,
         enableHiding: false,
         cell: ({ row }) => (
-            <div className="flex items-center justify-end gap-1">
+            <div className="flex items-center justify-center gap-2">
                 {renderActions(row.original)}
             </div>
         ),
         meta: {
-            className: "w-[1%] whitespace-nowrap text-right",
+            className: "w-[1%] whitespace-nowrap text-center",
         },
     };
 }

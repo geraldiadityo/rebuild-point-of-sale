@@ -54,7 +54,7 @@ export class KategoriRepository extends CacheRepository implements IKategoriRepo
 
     async findAll(): Promise<Kategori[]> {
         const cacheKey = this.getCacheKey('all');
-        const cachedData = await this.keyv.get<Kategori[]>(cacheKey);
+        const cachedData = await this.cache.get<Kategori[]>(cacheKey);
         if(cachedData){
             this.logger.debug('Fetching data from cache', {context: this.ctx});
             return cachedData
@@ -62,7 +62,7 @@ export class KategoriRepository extends CacheRepository implements IKategoriRepo
 
         this.logger.debug('Fetching data from database', { context: this.ctx });
         const dbData = await this.prisma.kategori.findMany();
-        await this.keyv.set(cacheKey, dbData);
+        await this.cache.set(cacheKey, dbData);
 
         return dbData;
     }

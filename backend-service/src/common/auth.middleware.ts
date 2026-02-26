@@ -55,7 +55,7 @@ export class AuthMiddleware implements NestMiddleware {
                 // token lama yang tidak memiliki uuid akan langsung di tolak
                 throw new HttpException('Invalid token, (missing JTI)', HttpStatus.UNAUTHORIZED);
             }
-            const isDenied = await this.keyv.get(decoded.jti);
+            const isDenied = await this.cache.get(decoded.jti);
             if(isDenied){
                 throw new HttpException('Token has been revoked', HttpStatus.UNAUTHORIZED);
             }

@@ -130,7 +130,7 @@ export class AuthService {
             if(ttl > 0){
                 const ttlInMiliSecond = ttl * 1000;
                 this.logger.debug(`Adding token JTI to deny list: ${jti} with TTL: ${ttl}s`, { context: this.ctx });
-                await this.keyv.set(jti, 'denied', ttlInMiliSecond);
+                await this.cache.set(jti, 'denied', ttlInMiliSecond);
             }
         } catch (err){
             this.logger.error('Error during token invalidation', { context: this.ctx });

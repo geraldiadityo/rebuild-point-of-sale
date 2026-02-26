@@ -35,6 +35,8 @@ export interface SimpleTableProps<TData, TValue> {
     emptyMessage?: string;
     /** Render action buttons per row — column is hidden when omitted */
     renderActions?: RenderActions<TData>;
+    /** Render No counter */
+    showRowNumber?: boolean;
 }
 
 // ─── Skeleton Loader ──────────────────────────────────────────────────────────
@@ -63,12 +65,32 @@ export function SimpleTable<TData, TValue>({
     isLoading = false,
     emptyMessage = "No data available.",
     renderActions,
+    showRowNumber=false,
 }: SimpleTableProps<TData, TValue>) {
     // Conditionally append the actions column
     const allColumns = useMemo(() => {
-        if (!renderActions) return columns;
-        return [...columns, createActionsColumn<TData>(renderActions)];
-    }, [columns, renderActions]);
+        const finalColumns = [...columns];
+        // insert column No in front of table
+        if(showRowNumber){
+            finalColumns.unshift({
+                id: "_index",
+                header: () => <div className="text-center w-full">No</div>,
+                cell: ({row}) => (
+                    <div className="text-center">{row.index + 1}</div>
+                ),
+                enableSorting: false,
+                enableHiding: false,
+                meta: {
+                    className: "w-[1%] whitespace-nowrap text-center"
+                },
+            } as ColumnDef<TData, any>);
+        }
+        if (renderActions){
+            finalColumns.push(createActionsColumn<TData>(renderActions))
+        }
+        return finalColumns
+        // return [...columns, createActionsColumn<TData>(renderActions)];
+    }, [columns, renderActions, showRowNumber]);
 
     const table = useReactTable({
         data,
@@ -86,7 +108,7 @@ export function SimpleTable<TData, TValue>({
                             className="bg-muted/50 hover:bg-muted/50"
                         >
                             {headerGroup.headers.map((header) => (
-                                <TableHead key={header.id}>
+                                <TableHead key={header.id} className={(header.column.columnDef.meta as any)?.className}>
                                     {header.isPlaceholder
                                         ? null
                                         : flexRender(
@@ -106,7 +128,7 @@ export function SimpleTable<TData, TValue>({
                         table.getRowModel().rows.map((row) => (
                             <TableRow key={row.id}>
                                 {row.getVisibleCells().map((cell) => (
-                                    <TableCell key={cell.id}>
+                                    <TableCell key={cell.id} className={(cell.column.columnDef.meta as any)?.className}>
                                         {flexRender(
                                             cell.column.columnDef.cell,
                                             cell.getContext()

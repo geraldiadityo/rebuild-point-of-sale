@@ -54,7 +54,7 @@ export class SatuanRepository extends CacheRepository implements ISatuanReposito
 
     async findAll(): Promise<Satuan[]> {
         const cacheKey = this.getCacheKey('all');
-        const cachedData = await this.keyv.get<Satuan[]>(cacheKey);
+        const cachedData = await this.cache.get<Satuan[]>(cacheKey);
         if(cachedData){
             this.logger.debug('Fetching data from cache',{context: this.ctx});
             return cachedData;
@@ -62,7 +62,7 @@ export class SatuanRepository extends CacheRepository implements ISatuanReposito
 
         this.logger.debug('Fetching data from database', {context: this.ctx});
         const dbData = await this.prisma.satuan.findMany();
-        await this.keyv.set(cacheKey, dbData);
+        await this.cache.set(cacheKey, dbData);
         return dbData;
     }
 

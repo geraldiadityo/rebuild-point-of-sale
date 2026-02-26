@@ -25,6 +25,8 @@ export const keyvProvider: Provider = {
         }
         const keyvRedis = new KeyvRedis(redisUri);
 
+        keyvRedis.setMaxListeners(50);
+
         keyvRedis.on('error', (err) => {
             logger.error(`Redis connection error`, {context: 'KeyProvider', error: err});
         });

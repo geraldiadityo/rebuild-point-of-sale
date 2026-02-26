@@ -15,7 +15,6 @@ import { ConfirmDialog } from "@/domains/shared/modal/ConfirmDialog";
 import TitleText from "@/domains/shared/text/TItleText";
 
 const roleColumns: ColumnDef<Role>[] = [
-    { accessorKey: 'id', header: 'ID' },
     { accessorKey: 'nama', header: 'Nama Role' }
 ];
 
@@ -57,6 +56,7 @@ export function RolesTabContent() {
             <SimpleTable
                 columns={roleColumns}
                 data={roles?.data || []}
+                showRowNumber={true}
                 renderActions={(role) => (
                     <div className="flex items-center space-x-2">
                         <ActDialog

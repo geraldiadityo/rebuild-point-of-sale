@@ -74,3 +74,34 @@ export const useCreateUser = (params: UseCreateUserParams = {}) => {
         }
     })
 }
+
+// change status user
+
+export async function chageStatusUser(id: number): Promise<ResponseData<User>> {
+    try {
+        const res = await axiosUse.patch(`/api/master/pengguna/change-status/${id}`,{});
+        const resData = await res.data;
+
+        return {
+            data: resData.data,
+            message: resData.message
+        }
+    } catch (err){
+        throw err
+    }
+}
+
+type UseChangeStatusUserParams = {
+    mutationConfig?: MutationConfig<typeof chageStatusUser>;
+}
+
+export const useChangeStatusUser = (params: UseChangeStatusUserParams = {}) => {
+    return useMutation({
+        mutationFn: chageStatusUser,
+        ...params.mutationConfig,
+        onSuccess: (data, variable, onMutateResult, context) => {
+            queryClient.invalidateQueries({ queryKey: getUsersQueryKey() })
+            params.mutationConfig?.onSuccess?.(data, variable, onMutateResult, context)
+        }
+    })
+}

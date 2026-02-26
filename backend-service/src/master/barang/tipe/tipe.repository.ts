@@ -54,7 +54,7 @@ export class TipeRepository extends CacheRepository implements ITipeRepository {
 
     async findAll(): Promise<Tipe[]> {
         const cacheKey = this.getCacheKey('all');
-        const cachedData = await this.keyv.get<Tipe[]>(cacheKey);
+        const cachedData = await this.cache.get<Tipe[]>(cacheKey);
 
         if(cachedData){
             this.logger.debug('Fetching data from cache', {context: this.ctx});
@@ -63,7 +63,7 @@ export class TipeRepository extends CacheRepository implements ITipeRepository {
 
         this.logger.debug('Fetching data from database',{context: this.ctx});
         const dbData = await this.prisma.tipe.findMany();
-        await this.keyv.set(cacheKey, dbData);
+        await this.cache.set(cacheKey, dbData);
         return dbData;
     }
 

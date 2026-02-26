@@ -69,7 +69,7 @@ export class PenggunaRepository extends CacheRepository implements IPenggunaRepo
 
     async findMany(args: FindManyPenggunaArgs): Promise<Pengguna[]>{
         const cacheKey = await this.getCacheKey(args);
-        const cachedData = await this.keyv.get<Pengguna[]>(cacheKey);
+        const cachedData = await this.cache.get<Pengguna[]>(cacheKey);
         if(cachedData){
             this.logger.debug('Fetching data from cache',{ context: this.ctx });
             return cachedData;
@@ -77,7 +77,7 @@ export class PenggunaRepository extends CacheRepository implements IPenggunaRepo
 
         this.logger.debug('Fetching data from database', { context: this.ctx });
         const dbData = await this.prisma.pengguna.findMany(args);
-        await this.keyv.set(cacheKey, dbData);
+        await this.cache.set(cacheKey, dbData);
 
         return dbData;
     }

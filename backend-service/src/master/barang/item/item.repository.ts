@@ -131,7 +131,7 @@ export class ItemRepository extends CacheRepository implements IItemRepository {
     async findMany(args: FindManyItemArgs): Promise<Item[]>{
         const cacheKey = this.getCacheKey(args);
         
-        const cachedData = await this.keyv.get<Item[]>(cacheKey);
+        const cachedData = await this.cache.get<Item[]>(cacheKey);
         
         if(cachedData){
             this.logger.debug(`Fetching data item from cache`,{context: this.ctx});
@@ -147,7 +147,7 @@ export class ItemRepository extends CacheRepository implements IItemRepository {
             }
         });
 
-        await this.keyv.set(cacheKey, dbData);
+        await this.cache.set(cacheKey, dbData);
 
         return dbData;
     }

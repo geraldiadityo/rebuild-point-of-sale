@@ -59,6 +59,8 @@ export interface DataTableProps<TData, TValue> {
     searchPlaceholder?: string;
     /** Render action buttons per row — column is hidden when omitted */
     renderActions?: RenderActions<TData>;
+    /** Render No Column counter */
+    showRowNumber?: boolean;
 }
 
 // ─── Skeleton Loader ──────────────────────────────────────────────────────────
@@ -129,12 +131,34 @@ export function DataTable<TData, TValue>({
     onSearchChange,
     searchPlaceholder = "Search...",
     renderActions,
+    showRowNumber=false,
 }: DataTableProps<TData, TValue>) {
     // Conditionally append the actions column
     const allColumns = useMemo(() => {
-        if (!renderActions) return columns;
-        return [...columns, createActionsColumn<TData>(renderActions)];
-    }, [columns, renderActions]);
+        const finalColumns = [...columns];
+        // insert no column
+        if (showRowNumber){
+            finalColumns.unshift({
+                id: "_index",
+                header: () => <div className="text-center w-full">No</div>,
+                cell: ({row, table}) => {
+                    const { pageIndex, pageSize } = table.getState().pagination;
+                    const indexNumber = (pageIndex * pageSize) + row.index + 1;
+
+                    return <div className="text-center">{indexNumber}</div>
+                },
+                enableSorting: false,
+                enableHiding: false,
+                meta: {
+                    className: "w-[1%] whitespace-nowrap text-center",
+                },
+            } as ColumnDef<TData, any>);
+        }
+        if (renderActions){
+            finalColumns.push(createActionsColumn<TData>(renderActions));
+        }
+        return finalColumns;
+    }, [columns, renderActions, showRowNumber]);
 
     const table = useReactTable({
         data,
@@ -190,7 +214,7 @@ export function DataTable<TData, TValue>({
                                 className="bg-muted/50 hover:bg-muted/50"
                             >
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id}>
+                                    <TableHead key={header.id} className={(header.column.columnDef.meta as any)?.className}>
                                         {header.isPlaceholder ? null : header.column.getCanSort() ? (
                                             <button
                                                 type="button"
@@ -227,7 +251,7 @@ export function DataTable<TData, TValue>({
                                     data-state={row.getIsSelected() && "selected"}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
+                                        <TableCell key={cell.id} className={(cell.column.columnDef.meta as any)?.className}>
                                             {flexRender(
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()

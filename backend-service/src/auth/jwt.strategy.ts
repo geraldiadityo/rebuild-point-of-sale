@@ -30,7 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy){
         if(!payload.jti){
             throw new HttpException('Token is missing jwt ID (jti).', HttpStatus.UNAUTHORIZED);
         }
-        const isDenied = await this.keyv.get(payload.jti);
+        const isDenied = await this.cache.get(payload.jti);
         if(isDenied){
             throw new HttpException('Token has been revoked', HttpStatus.UNAUTHORIZED);
         }

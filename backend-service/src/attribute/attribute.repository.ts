@@ -68,7 +68,7 @@ export class AttributeRepository extends CacheRepository {
 
     async findAll(): Promise<Attribute[]> {
         const cacheKey = this.getCacheKey('all');
-        const cachedData = await this.keyv.get<Attribute[]>(cacheKey);
+        const cachedData = await this.cache.get<Attribute[]>(cacheKey);
         
         if(cachedData){
             this.logger.debug('fetching data from cached', {context: this.ctx});
@@ -77,7 +77,7 @@ export class AttributeRepository extends CacheRepository {
 
         this.logger.debug('fetching data from database', {context: this.ctx});
         const dbData = await this.prisma.attribute.findMany();
-        await this.keyv.set(cacheKey, dbData);
+        await this.cache.set(cacheKey, dbData);
 
         return dbData;
     }

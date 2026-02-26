@@ -1,4 +1,4 @@
-import { Global, MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
+import { Global, Inject, MiddlewareConsumer, Module, NestModule, OnApplicationShutdown, RequestMethod } from "@nestjs/common";
 import { WinstonModule } from "nest-winston";
 import { loggerConfig } from "./logger.config";
 import { ConfigModule, ConfigService } from "@nestjs/config";
@@ -8,8 +8,8 @@ import { APP_FILTER, APP_GUARD } from "@nestjs/core";
 import { ErrorFilter } from "src/utils/error.filter";
 import { JwtModule } from "@nestjs/jwt";
 import { AuthMiddleware } from "./auth.middleware";
-import { keyvProvider } from "./keyv.provider";
-
+import { KEYV_INSTANCE, keyvProvider } from "./keyv.provider";
+import Keyv from "keyv";
 
 @Global()
 @Module({
@@ -110,7 +110,21 @@ import { keyvProvider } from "./keyv.provider";
         keyvProvider
     ]
 })
-export class CommonModule implements NestModule {
+export class CommonModule implements NestModule, OnApplicationShutdown {
+    constructor(
+        @Inject(KEYV_INSTANCE) private readonly globalKeyv: Keyv
+    ) {}
+    async onApplicationShutdown(signal?: string) {
+        console.log(`Recieved shutdown signal ${signal}. Closing Redis connection...`);
+        try {
+            if (this.globalKeyv){
+                await this.globalKeyv.disconnect();
+                console.log('Redis connection closed gracefully');
+            }
+        } catch (err){
+            console.error(`Error closing redis connection`, err);
+        }
+    }
     configure(consumer: MiddlewareConsumer) {
         consumer.apply(AuthMiddleware)
         .exclude(

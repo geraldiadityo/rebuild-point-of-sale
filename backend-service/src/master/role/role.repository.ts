@@ -52,7 +52,7 @@ export class RoleRepository extends CacheRepository implements IRoleRepository {
 
     async findAll(): Promise<Role[]> {
         const cacheKey = await this.getCacheKey('all');
-        const cachedData = await this.keyv.get<Role[]>(cacheKey);
+        const cachedData = await this.cache.get<Role[]>(cacheKey);
         if(cachedData){
             this.logger.debug('Fecthing data from Cache',{
                 context: this.ctx
@@ -63,7 +63,7 @@ export class RoleRepository extends CacheRepository implements IRoleRepository {
             context: this.ctx
         });
         const dbData = await this.prisma.role.findMany();
-        await this.keyv.set(cacheKey, dbData);
+        await this.cache.set(cacheKey, dbData);
         return dbData;
     }
 
