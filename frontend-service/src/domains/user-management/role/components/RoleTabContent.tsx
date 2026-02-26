@@ -12,6 +12,7 @@ import { ActDialog } from "@/domains/shared/modal/ActDialog";
 import { EditRoleForm } from "./EditForm";
 import { showToast } from "@/core/toast/showToast";
 import { ConfirmDialog } from "@/domains/shared/modal/ConfirmDialog";
+import TitleText from "@/domains/shared/text/TItleText";
 
 const roleColumns: ColumnDef<Role>[] = [
     { accessorKey: 'id', header: 'ID' },
@@ -44,7 +45,9 @@ export function RolesTabContent() {
         <div className="space-y-4">
             <div className="flex flex-col lg:flex-row justify-between">
                 <div className="">
-                    <h1 className="font-bold">Data Role</h1>
+                    <TitleText
+                        title="Data Role"
+                    />
                 </div>
                 <Button onClick={() => setIsAddDialogOpen(true)}>
                     <Plus className="mr-2 size-4" />

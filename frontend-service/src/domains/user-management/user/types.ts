@@ -7,3 +7,11 @@ export interface User {
     role: Role;
     status: boolean;
 }
+
+export interface UserCreateApi {
+    username: string;
+    nama: string;
+    roleId: number;
+    password: string;
+    confirm_password: string;
+}
